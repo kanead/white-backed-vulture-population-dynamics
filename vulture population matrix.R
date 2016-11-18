@@ -1,6 +1,8 @@
 # -------------------------------------------------- 
 # Matrix Population Models for White-backed Vultures 
 # --------------------------------------------------
+# useful link http://www.mbr-pwrc.usgs.gov/workshops/uf2016/
+
 # clean everything first
 rm(list=ls())
 
@@ -8,7 +10,7 @@ rm(list=ls())
 library(popbio)
 library(diagram)
 
-# fecundity calculation
+# fecundity calculation, (Gauthier & Lebreton (2004) Population models for Greater Snow Geese)
 bp <- 0.85 # breeding propensity
 cs <- 1 # clutch size
 hs <- 0.75 # hatching success 

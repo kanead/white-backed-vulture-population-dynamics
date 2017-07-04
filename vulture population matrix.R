@@ -156,3 +156,14 @@ eigen.analysis(MKZN, zero=TRUE)
 par(mfrow=c(1,2))
 plot(popModelKr$pop.sizes, type="l", xlab = "year", ylab = "pop. size (females)", main = "Kruger")
 plot(popModelKZN$pop.sizes, type="l", xlab = "year", ylab = "pop. size (females)", main = "KZN")
+
+# Can load in matrix as follows 
+#setwd("C:/Users/akane/Desktop/Science/Manuscripts/White-backed Vulture Pop Dynamics/Code/white-backed-vulture-population-dynamics")
+#mydata <- as.matrix(read.table("KZN Matrix basic.csv", header=F, sep = ",",
+#                               as.is=TRUE))
+
+#MKZN <- matrix ((mydata), ncol=21, byrow = TRUE)
+#nKZN<-c(10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0)
+#nKZN<-matrix (nKZN, ncol=1)
+#popModelKZN <- pop.projection(MKZN,nKZN,iterations=10)
+

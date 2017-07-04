@@ -13,16 +13,16 @@ library(diagram)
 # fecundity calculation, (Gauthier & Lebreton (2004) Population models for Greater Snow Geese)
 bp <- 0.85 # breeding propensity
 cs <- 1 # clutch size
-hs <- 0.75 # hatching success 
+hs <- 0.76 # hatching success 
 fs <- 0.6 # fledging success 
 fecundity <- bp * (cs/2) * hs * fs # divide by 2 to get females only
 #--------------------------------------------
 #               KRUGER
 #--------------------------------------------
 fsKr <- 0.42 # first year survival 
-jsKr <- 0.7644702 # juvenile survival Kruger
-ssKr <- 0.9256097 # subadult survival Kruger
-asKr <- 0.9698704 # adult survival Kruger
+jsKr <- 0.8193305 # juvenile survival Kruger
+ssKr <- 0.8885506 # subadult survival Kruger
+asKr <- 1.0 # adult survival Kruger
 
 # survival this year is multiplied by fecundity next year because in this model
 # the birds have to survive the year before they become breeders i.e. from 4 years old to 
@@ -89,7 +89,7 @@ nKR<-matrix (nKR, ncol=1)
 nKR
 
 # previous function is wrapped up into pop.projection
-popModelKr <- pop.projection(MKr,nKR,iterations=40)
+popModelKr <- pop.projection(MKr,nKR,iterations=5)
 
 # Calculate population growth rate and other demographic parameters from a projection matrix model
 # using matrix algebra
@@ -99,9 +99,9 @@ eigen.analysis(MKr, zero=TRUE)
 #               KZN
 #--------------------------------------------
 fsKZN <- 0.42 # first year survival 
-jsKZN <-  0.9813814 # juvenile survival KZN
-ssKZN <- 0.6928154 # subadult survival KZN
-asKZN <- 0.5082008 # adult survival KZN
+jsKZN <-  0.8601882 # juvenile survival KZN
+ssKZN <- 0.5134050 # subadult survival KZN
+asKZN <- 0.5672604 # adult survival KZN
 
 # survival this year is multiplied by fecundity next year because in this model
 # the birds have to survive the year before they become breeders i.e. from 4 years old to 
@@ -145,7 +145,7 @@ nKZN<-matrix (nKZN, ncol=1)
 nKZN
 
 # pop.projection function
-popModelKZN <- pop.projection(MKZN,nKZN,iterations=40)
+popModelKZN <- pop.projection(MKZN,nKZN,iterations=5)
 
 # Calculate population growth rate and other demographic parameters from a projection matrix model
 # using matrix algebra

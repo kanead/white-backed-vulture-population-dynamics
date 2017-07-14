@@ -89,7 +89,7 @@ nKR<-matrix (nKR, ncol=1)
 nKR
 
 # previous function is wrapped up into pop.projection
-popModelKr <- pop.projection(MKr,nKR,iterations=5)
+popModelKr <- pop.projection(MKr,nKR,iterations=100)
 
 # Calculate population growth rate and other demographic parameters from a projection matrix model
 # using matrix algebra
@@ -157,7 +157,70 @@ par(mfrow=c(1,2))
 plot(popModelKr$pop.sizes, type="l", xlab = "year", ylab = "pop. size (females)", main = "Kruger")
 plot(popModelKZN$pop.sizes, type="l", xlab = "year", ylab = "pop. size (females)", main = "KZN")
 
+#--------------------------------------------
+# Weighted Average
+#--------------------------------------------
+fsKZNw <- 0.42 # first year survival 
+jsKZNw <-  0.82 # juvenile survival 
+ssKZNw <- 0.89 # subadult survival 
+asKZNw <- 0.871 # adult survival 
+
+# survival this year is multiplied by fecundity next year because in this model
+# the birds have to survive the year before they become breeders i.e. from 4 years old to 
+# breeding age at 5 years old 
+
+# for 
+
+ssfKZNw <- ssKZNw * fecundity
+asfKZNw <- asKZNw * fecundity
+
+# create the matrix for 
+MKZN <- c(0,0,0,0,ssfKZNw,asfKZNw,
+          fsKZNw,0,0,0,0,0,
+          0,jsKZNw,0,0,0,0,
+          0,0,jsKZNw,0,0,0,
+          0,0,0,ssKZNw,0,0,
+          0,0,0,0,ssKZNw,asKZNw
+)
+
+
+MKZN <- matrix ((MKZN), ncol=6, byrow = TRUE)
+colnames(MKZN) <- c("babies","1yr olds","2yr olds","3yr olds","4yr olds","5yr olds")
+MKZN
+
+# Population sizes at each age from KZN
+
+# Rushworth estimates 319 pairs of breeding adults 
+# Assume an additional 0.3 immature and non-breeding birds per pair
+# Remember, we're only modelling females 
+additionalPopKZN <- 319 * 0.3
+totalPopKZN <- 319*2 + additionalPopKZN # < Rushworth's estimate
+# divide additional population among the 5 non-adult categories 
+# (Note: do we want some of these included among the adults as adult aged non-breeders?)
+additionalPopKZN / 5 / 2
+# this value is too low to reach the estimated 900 birds, instead we subtract the breeding population
+# from the total pop estimate and divide the remainder up among the other 5 age categories
+# Rushworth assumes there are between 800 and 900 birds in total in KZN, taking the 900 value
+(900-319*2)/5/2
+
+
+nKZN<-c(26, 26, 26, 26, 26, 319)
+nKZN<-matrix (nKZN, ncol=1)
+nKZN
+
+# pop.projection function
+popModelKZN <- pop.projection(MKZN,nKZN,iterations=5)
+
+# Calculate population growth rate and other demographic parameters from a projection matrix model
+# using matrix algebra
+eigen.analysis(MKZN, zero=TRUE)
+
+
+
+
+#--------------------------------------------
 # Can load in matrix as follows 
+#--------------------------------------------
 #setwd("C:/Users/akane/Desktop/Science/Manuscripts/White-backed Vulture Pop Dynamics/Code/white-backed-vulture-population-dynamics")
 #mydata <- as.matrix(read.table("KZN Matrix basic.csv", header=F, sep = ",",
 #                               as.is=TRUE))

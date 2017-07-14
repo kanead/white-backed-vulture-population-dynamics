@@ -77,6 +77,9 @@ if ticks = 1[
 ;]
 
 
+ask carcasses [
+  check
+]
 
 
   ask adults
@@ -89,7 +92,7 @@ if ticks = 1[
  ask juveniles
  [forage-juvenile
    territory-juvenile
-   feed-vul
+   feed-vul-juv
    rtb-juvenile
    set x0 xcor
   set y0 ycor
@@ -108,10 +111,10 @@ end
 to forage-vul
     set energy  energy  - 1
   fd v
-;   if random 600 = 1 ;; frequency of turn
-;  [ ifelse random 2 = 0 ;; 50:50 chance of left or right
-;    [ rt 30 ] ;; could add some variation to this with random-normal 45 5
-;    [ lt 30 ]] ;; so that it samples from a dist with mean 45 SD 5
+   if random 600 = 1 ;; frequency of turn
+  [ ifelse random 2 = 0 ;; 50:50 chance of left or right
+    [ rt 30 ] ;; could add some variation to this with random-normal 45 5
+    [ lt 30 ]] ;; so that it samples from a dist with mean 45 SD 5
  end
   to territory-vul
     while [[pcolor] of patch-here = green - 1]
@@ -127,7 +130,7 @@ to forage-vul
 let target-food min-one-of (carcasses in-radius vision) [distance myself]
   if target-food != nobody  [
     move-to target-food
-    if [color] of target-food = cyan [die]
+    if [color] of target-food = cyan  [die]
   ]]
   end
 
@@ -152,6 +155,15 @@ to forage-juvenile
 
 end
 
+  to feed-vul-juv
+    if energy > 0 [
+let target-food min-one-of (carcasses in-radius vision with [shape = "circle"]) [distance myself]
+  if target-food != nobody  [
+    move-to target-food
+    if [color] of target-food = cyan  [die]
+  ]]
+  end
+
   to territory-juvenile
  ;   while [[pcolor] of patch-here != yellow]
  ;    [
@@ -167,6 +179,13 @@ to rtb-juvenile
   ]
 end
 
+
+;;-------------------------------------------------------------;;
+;;------------------- CARCASS COMMANDS-------------------------;;
+;;-------------------------------------------------------------;;
+to check
+if any? adults-here [set shape "target"]
+end
 
 ;;-------------------------------------------------------------;;
 ;;------------------- GENERAL COMMANDS-------------------------;;
@@ -250,7 +269,7 @@ N-adults
 N-adults
 0
 100
-100
+50
 1
 1
 NIL
@@ -371,9 +390,9 @@ TEXTBOX
 1090
 10
 1779
-750
-NOTES\n\nHABITAT\n- area is 200 x 200km = 40000km^2\n- 2 habitat types, inside + outside of green circle, adults don't go beyond this green radius (r=50km) (Spiegel et al 2013)\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n4.38kg of carcass per km^2 (Houston 1979) * area  (40000km^2) = 175200kg carrion in area. Divide up into 500kg packages to give 350 items of carrion in the environment. Halve this because not all carrion will be accessible to give 175 carcasses.\n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Houston, D.C. (1979) The adaptations of scavengers. Serengeti, Dynamics of an Ecosystem (eds A.R.E. Sinclair & M.N. Griffiths), pp. 263–286. University of Chicago Press, Chicago, IL, USA.
-16
+790
+NOTES\n\nHABITAT\n- area is 200 x 200km = 40000km^2\n- 2 habitat types, inside + outside of green circle, adults don't go beyond this green radius (r=50km) (Spiegel et al 2013)\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n- Dominance: juveniles will not land at a carcass occupied by an adult (Bosè et al 2012)\n\nCARCASSES\n4.38kg of carcass per km^2 (Houston 1979) * area  (40000km^2) = 175200kg carrion in area. Divide up into 500kg packages to give 350 items of carrion in the environment. Halve this because not all carrion will be accessible to give 175 carcasses.\n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Houston, D.C. (1979) The adaptations of scavengers. Serengeti, Dynamics of an Ecosystem (eds A.R.E. Sinclair & M.N. Griffiths), pp. 263–286. University of Chicago Press, Chicago, IL, USA.\n(d) Bosè, M., Duriez, O., & Sarrazin, F. (2012). Intra-specific competition in foraging griffon vultures Gyps fulvus: 1. Dynamics of group feeding. Bird Study, 59(2), 182-192.\n
+14
 0.0
 1
 
@@ -385,7 +404,7 @@ CHOOSER
 inside-rate
 inside-rate
 2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-1
+0
 
 CHOOSER
 103
@@ -395,7 +414,7 @@ CHOOSER
 outside-rate
 outside-rate
 2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-8
+4
 
 PLOT
 733

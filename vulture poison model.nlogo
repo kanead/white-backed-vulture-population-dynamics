@@ -1,13 +1,16 @@
 ;;-------------------------------------------------------------;;
 ;;-------------------------------------------------------------;;
-
+; http://jasss.soc.surrey.ac.uk/20/1/3.html
 breed [adults adult]
+breed [subadults subadult]
 breed [juveniles juvenile]
 
 breed [carcasses carcass]
 
-adults-own [energy  x0 y0]
-juveniles-own [energy  x0 y0]
+adults-own [energy  x0 y0 xcar ycar]
+subadults-own [energy  x0 y0 xcar ycar]
+juveniles-own [energy  x0 y0 xcar ycar target-patch]
+carcasses-own [mass decay]
 
 globals [day poison]
 
@@ -22,10 +25,11 @@ ask patches [set pcolor green - 1]
   [
    set pcolor yellow
     ask patches in-radius 8 [set pcolor yellow]
-    ask patches in-radius 50 with [pcolor != yellow] [set pcolor green]
-  ;  ask n-of n-carcasses patches [set pcolor blue]
+    ask patches in-radius 50 with [pcolor != yellow] [set pcolor green - 3]
+    ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]
   ]
 
+ask n-of 10 patches [set pcolor brown]
 
 ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
    set color red
@@ -35,7 +39,17 @@ ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
  set y0 ycor]
 ]
 
-ask n-of n-juveniles patches with [pcolor = yellow] [sprout-juveniles 1 [
+
+ask n-of n-subadults patches  [sprout-subadults 1 [
+    set color brown
+    set size 2
+    set energy 10000
+    set x0 xcor
+    set y0 ycor]
+]
+
+
+ask n-of n-juveniles patches  [sprout-juveniles 1 [
     set color blue
     set size 2
     set energy 10000
@@ -55,30 +69,40 @@ to go
   if ticks = day-length  [set day day + 1 create-next-day]
 
 
+;  if ticks = 0 [
+;create-carcasses n-carcasses [
+;setxy random-xcor random-ycor
+;set color white
+;set size 2
+;set shape "circle"
+;]]
   if ticks = 0 [
-create-carcasses n-carcasses [
-setxy random-xcor random-ycor
+  ask patches [
+    while [sum [mass] of carcasses < random-normal 6000 100] [
+sprout-carcasses 1 [
+set mass random-gamma 1.2 0.004
+setxy random-pxcor random-pycor
 set color white
 set size 2
 set shape "circle"
-]]
+]]]
+  ]
 
 
 if ticks = 1[
-  ask carcasses [ifelse distancexy 99.5 99.5 > 50 [if random outside-rate = 1 [set color cyan]]
+  ask carcasses [ifelse distancexy 99.5 99.5 > 80 [if random outside-rate = 1 [set color cyan]]
     [if random inside-rate = 1 [set color cyan]]
-  ]
-]
+      ]]
 
-;if ticks = 1[
-;  ask carcasses [ifelse distancexy 0 0 > 50 [set color cyan]
-;    [set color orange]
-;  ]
-;]
+if ticks = 1[
+ask carcasses
+[ifelse color != red [set decay decay + 2] [set decay decay + 1]
+]]
 
 
 ask carcasses [
   check
+  if distancexy 99.5 99.5 < 80 and mass > 1000 [set color red]
 ]
 
 
@@ -87,19 +111,29 @@ ask carcasses [
    territory-vul
    feed-vul
   rtb-vul
+  social-vul
   ]
+
+
+ ask subadults
+ [forage-vul
+   feed-vul
+  rtb-vul
+  social-vul
+  ]
+
 
  ask juveniles
  [forage-juvenile
-   territory-juvenile
    feed-vul-juv
    rtb-juvenile
    set x0 xcor
   set y0 ycor
+  social-vul
   ]
 
 
-if not any? adults or not any? juveniles [ print "day" print day print "n-adults" print count adults print "n-juveniles" print count juveniles stop]
+;if not any? adults or not any? juveniles [ print "day" print day print "n-adults" print count adults print "n-juveniles" print count juveniles stop]
 
  tick
 end
@@ -117,9 +151,9 @@ to forage-vul
     [ lt 30 ]] ;; so that it samples from a dist with mean 45 SD 5
  end
   to territory-vul
-    while [[pcolor] of patch-here = green - 1]
+    while [[pcolor] of patch-here = green ]
      [
-       face min-one-of patches with [pcolor = green  ] [ distance myself ]
+       face min-one-of patches with [pcolor = green - 3  ] [ distance myself ]
        forage-vul
      ]
 
@@ -127,9 +161,23 @@ to forage-vul
 
   to feed-vul
     if energy > 0 [
-let target-food min-one-of (carcasses in-radius vision) [distance myself]
+let target-food min-one-of (carcasses with [shape = "circle"] in-radius vision) [distance myself]
   if target-food != nobody  [
     move-to target-food
+    set xcar xcor
+    set ycar ycor
+    if [color] of target-food = cyan  [die]
+  ]]
+  end
+
+
+    to social-vul
+    if energy > 0 [
+let target-food min-one-of (carcasses with [shape = "target"] in-radius 7) [distance myself]
+  if target-food != nobody  [
+    move-to target-food
+    set xcar xcor
+    set ycar ycor
     if [color] of target-food = cyan  [die]
   ]]
   end
@@ -164,19 +212,12 @@ let target-food min-one-of (carcasses in-radius vision with [shape = "circle"]) 
   ]]
   end
 
-  to territory-juvenile
- ;   while [[pcolor] of patch-here != yellow]
- ;    [
- ;      face min-one-of patches with [pcolor = yellow  ] [ distance myself ]
- ;      forage-juvenile
- ;    ]
-
-  end
 
 to rtb-juvenile
-  if energy <= 0 [
-   face patch x0 y0
+  if energy = 0 [
+  set target-patch min-one-of (patches  with [pcolor = brown]) [distance myself]
   ]
+  if energy < 0   [ face target-patch ]
 end
 
 
@@ -184,7 +225,7 @@ end
 ;;------------------- CARCASS COMMANDS-------------------------;;
 ;;-------------------------------------------------------------;;
 to check
-if any? adults-here [set shape "target"]
+ifelse any? turtles-here with [shape = "default"] [set shape "target"][set shape "circle"]
 end
 
 ;;-------------------------------------------------------------;;
@@ -193,9 +234,13 @@ end
 to create-next-day
   clear-links
   reset-ticks
-  ask adults [set energy 10000]
-  ask juveniles [set energy 10000]
-  ask carcasses [die]
+     ask adults [set energy 10000
+        face patch xcar ycar]
+  ask subadults [set energy 10000
+        face patch xcar ycar]
+  ask juveniles [set energy 10000
+        face patch xcar ycar]
+  ask carcasses with [decay = 2] [die]
   go
 end
 @#$#@#$#@
@@ -269,17 +314,17 @@ N-adults
 N-adults
 0
 100
-50
+10
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-97
-199
-154
-244
+96
+238
+153
+283
 NIL
 day
 17
@@ -287,10 +332,10 @@ day
 11
 
 INPUTBOX
-9
-197
-87
-257
+8
+236
+86
+296
 day-length
 20000
 1
@@ -298,10 +343,10 @@ day-length
 Number
 
 INPUTBOX
-6
-327
-79
-387
+5
+366
+78
+426
 v
 0.00667
 1
@@ -310,24 +355,24 @@ Number
 
 SLIDER
 7
-96
+130
 179
-129
+163
 N-juveniles
 N-juveniles
 0
 100
-50
+0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-7
-164
-179
-197
+6
+203
+178
+236
 vision
 vision
 0
@@ -338,26 +383,11 @@ vision
 NIL
 HORIZONTAL
 
-SLIDER
-6
-129
-178
-162
-n-carcasses
-n-carcasses
-0
-400
-175
-1
-1
-NIL
-HORIZONTAL
-
 MONITOR
-88
-418
-203
-463
+87
+457
+202
+502
 N poisoned carcasses
 count carcasses with [color = cyan]
 17
@@ -365,10 +395,10 @@ count carcasses with [color = cyan]
 11
 
 MONITOR
-101
-320
-194
-365
+100
+359
+193
+404
 NIL
 count adults
 17
@@ -376,10 +406,10 @@ count adults
 11
 
 MONITOR
-101
-370
-197
-415
+100
+409
+196
+454
 NIL
 count juveniles
 17
@@ -391,30 +421,30 @@ TEXTBOX
 10
 1779
 790
-NOTES\n\nHABITAT\n- area is 200 x 200km = 40000km^2\n- 2 habitat types, inside + outside of green circle, adults don't go beyond this green radius (r=50km) (Spiegel et al 2013)\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n- Dominance: juveniles will not land at a carcass occupied by an adult (Bosè et al 2012)\n\nCARCASSES\n4.38kg of carcass per km^2 (Houston 1979) * area  (40000km^2) = 175200kg carrion in area. Divide up into 500kg packages to give 350 items of carrion in the environment. Halve this because not all carrion will be accessible to give 175 carcasses.\n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Houston, D.C. (1979) The adaptations of scavengers. Serengeti, Dynamics of an Ecosystem (eds A.R.E. Sinclair & M.N. Griffiths), pp. 263–286. University of Chicago Press, Chicago, IL, USA.\n(d) Bosè, M., Duriez, O., & Sarrazin, F. (2012). Intra-specific competition in foraging griffon vultures Gyps fulvus: 1. Dynamics of group feeding. Bird Study, 59(2), 182-192.\n
+NOTES\n\nHABITAT\n- area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of green circle, adults don't go beyond this green radius (r=50km) (Spiegel et al 2013)\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n- Dominance: juveniles will not land at a carcass occupied by an adult (Bosè et al 2012)\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area  (40000km^2) = 6000kg carrion in area. Divide up into 500kg packages to give 350 items of carrion in the environment. Halve this because not all carrion will be accessible to give 175 carcasses.\n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n(d) Bosè, M., Duriez, O., & Sarrazin, F. (2012). Intra-specific competition in foraging griffon vultures Gyps fulvus: 1. Dynamics of group feeding. Bird Study, 59(2), 182-192.\n
 14
 0.0
 1
 
 CHOOSER
-7
-269
-99
-314
+6
+308
+98
+353
 inside-rate
 inside-rate
 2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-0
+13
 
 CHOOSER
-103
-270
-195
-315
+102
+309
+194
+354
 outside-rate
 outside-rate
 2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-4
+13
 
 PLOT
 733
@@ -434,6 +464,44 @@ true
 PENS
 "adults" 1.0 0 -2674135 true "" "plot count adults"
 "juveniles" 1.0 0 -13345367 true "" "plot count juveniles"
+"subadults" 1.0 0 -6459832 true "" "plot count subadults"
+
+MONITOR
+90
+507
+201
+552
+total carrion mass
+sum [mass] of carcasses
+1
+1
+11
+
+SLIDER
+8
+96
+180
+129
+N-subadults
+N-subadults
+0
+100
+0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+93
+560
+203
+605
+max carcass size
+max [mass] of carcasses
+1
+1
+11
 
 @#$#@#$#@
 
@@ -451,6 +519,15 @@ Home range for Cape Vulture ~ 38,000 km^2, radius of 110 km to get this area in 
 ## Carcass Data
 
 4.38kg of carrion per km^2 per day
+0.12-0.15 kg km-2 day-1 from Campbell
+
+##Area Data
+Kruger is 20,000 km2
+square with side of length 141 km
+
+Circle with the same area has a radius = 80km
+
+
 @#$#@#$#@
 default
 true

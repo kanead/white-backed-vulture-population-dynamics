@@ -63,19 +63,20 @@ lambda(MKZpre)
 #--------------------------------------------
 # Specify the number of simulations, time steps for each simulation, and the
 # pseudo-extinction threshold
-sims <- 500
+sims <- 500 
 tspan <- 50
 threshold <- 20
 
 # Define demographic parameters that do not vary over time
-f1 <- 0.1824
+f1 <- 0.1824 # fecundity
 gb <- 0.01 # migration rates from Kruger to KZN
 bg <- 0.01 # migration rates from KZN to Kruger
-s0 <- 0.42
-s1Kz <- 0.86
-s2Kz <- 0.51
-s3Kz <- 0.57
-s1Kr <- 0.82
+s0 <- 0.42 # first year survival
+s1Kz <- 0.86 # juvenile survival KZN
+s2Kz <- 0.51 # Subadult survival KZN
+s3Kz <- 0.57 # adult survival KZN
+s1Kr <- 0.82 # juvenile survival Kruger
+
 # Storage place for per time step growth rates for eventual calculation of
 # the stochastic growth rate
 gr <- matrix(0,sims,tspan-1)
@@ -92,10 +93,17 @@ for (j in 1:sims){
   nstore <- matrix(0,tspan,1) # temporary storage of time-specific abundance
   nstore[1] <- sum(n)
   for(t in 2:tspan){
-    X <- rbinom(1, 1, 1/15)
-    s2Kr <- 0.89 - (1/2*0.89*X)
-    s3Kr <- 1 - (1/2*1*X)
-    A <- matrix(c(
+    X <- rbinom(1, 1, 1/15) # probabilty that poisoning occurs, here it's once ever 15 years
+    s2Kr <- 0.89 - (1/2*0.89*X) # Kruger subadult survival halves under poisoning
+    s3Kr <- 1 - (1/2*1*X) # Kruger adult survival halves under poisoning
+    
+    # The following megamatrix matrix - A - has the Kruger matrix in top left 
+    # and KZN matrix in bottom right
+    # the diagonals are include the probability of emigration/immigration between sites
+    # that's why it's called a megamatrix
+    # take a look at the simpler matrices above constructed separately for each site
+    # to see where these values come from
+    A <- matrix(c( 
       0,  0,  0,  0,  s0*f1,  0,  0,  0,  0, 0,
       s1Kr*(1-gb), 0, 0, 0, 0, s1Kz*bg, 0, 0, 0, 0,
       0, s1Kr*(1-gb), 0, 0, 0, 0, s1Kz*bg, 0, 0, 0,
@@ -123,5 +131,5 @@ ext_prob <- mean(ext_ind)         # the pseudo-extinction probability
 
 ln_lambda_s
 Lambda_s
-ext_prob
-nb_extr_event
+ext_prob # the overall extinction probability 
+nb_extr_event # number of extinction events over the model run

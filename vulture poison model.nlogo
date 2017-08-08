@@ -7,9 +7,9 @@ breed [juveniles juvenile]
 
 breed [carcasses carcass]
 
-adults-own [energy  x0 y0 xcar ycar]
-subadults-own [energy  x0 y0 xcar ycar]
-juveniles-own [energy  x0 y0 xcar ycar target-patch]
+adults-own [energy x0 y0 xcar ycar]
+subadults-own [energy x0 y0 xcar ycar target-patch]
+juveniles-own [energy x0 y0 xcar ycar target-patch]
 carcasses-own [mass decay]
 
 globals [day poison]
@@ -29,7 +29,7 @@ ask patches [set pcolor green - 1]
     ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]
   ]
 
-ask n-of 10 patches [set pcolor brown]
+ask n-of roosts patches [set pcolor brown]
 
 ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
    set color red
@@ -77,16 +77,36 @@ to go
 ;set shape "circle"
 ;]]
   if ticks = 0 [
-  ask patches [
-    while [sum [mass] of carcasses < random-normal 6000 100] [
+  ask patches with [pcolor != green - 1] [
+    while [sum [mass] of carcasses  < random-normal 3000 100] [
 sprout-carcasses 1 [
-set mass random-gamma 1.2 0.004
-setxy random-pxcor random-pycor
+set mass random-gamma alpha beta ;; 1.2 0.004
+move-to one-of  patches with [pcolor != green - 1]
+;setxy random-pxcor random-pycor
 set color white
 set size 2
 set shape "circle"
 ]]]
   ]
+
+
+    if ticks = 0 [
+  ask patches with [pcolor = green - 1] [
+    while [sum [mass] of carcasses < random-normal 9000 100] [
+sprout-carcasses 1 [
+set mass random-normal mu std ; 500 100
+move-to one-of  patches with [pcolor = green - 1]
+;setxy random-pxcor random-pycor
+set color white
+set size 2
+set shape "circle"
+]]]
+  ]
+
+    ask carcasses [
+  check
+  if distancexy 99.5 99.5 < 80 and mass > 1000 [set color red]
+]
 
 
 if ticks = 1[
@@ -100,36 +120,35 @@ ask carcasses
 ]]
 
 
-ask carcasses [
-  check
-  if distancexy 99.5 99.5 < 80 and mass > 1000 [set color red]
-]
+
 
 
   ask adults
  [forage-vul
-   territory-vul
-   feed-vul
-  rtb-vul
+  feed-vul
   social-vul
+  rtb-vul
+  territory-vul
   ]
 
 
  ask subadults
  [forage-vul
    feed-vul
-  rtb-vul
-  social-vul
+   social-vul
+   rtb-sub
+  set x0 xcor
+  set y0 ycor
   ]
 
 
  ask juveniles
- [forage-juvenile
-   feed-vul-juv
+ [forage-vul
+   feed-vul
+   social-vul
    rtb-juvenile
    set x0 xcor
   set y0 ycor
-  social-vul
   ]
 
 
@@ -185,41 +204,38 @@ let target-food min-one-of (carcasses with [shape = "target"] in-radius 7) [dist
 to rtb-vul
   if energy <= 0 [
    face patch x0 y0
+   fd v * 2
   ]
 end
 
+;;-------------------------------------------------------------;;
+;;------------------- SUBADULT COMMANDS------------------------;;
+;;-------------------------------------------------------------;;
+
+to rtb-sub
+  if energy = 0 [ ifelse random 2 = 1 [set target-patch min-one-of (patches  with [pcolor = yellow]) [distance myself]]
+    [
+  set target-patch min-one-of (patches  with [pcolor = brown]) [distance myself]
+    ]
+  ]
+  if energy < 0   [ face target-patch
+  fd v * 2
+  ]
+end
 
 
 ;;-------------------------------------------------------------;;
 ;;------------------- JUVENILE COMMANDS------------------------;;
 ;;-------------------------------------------------------------;;
-to forage-juvenile
-    set energy  energy  - 1
-  fd v
-   if random 600 = 1
-  [ ifelse random 2 = 0
-    [ rt 30 ]
-    [ lt 30 ]]
-
-end
-
-  to feed-vul-juv
-    if energy > 0 [
-let target-food min-one-of (carcasses in-radius vision with [shape = "circle"]) [distance myself]
-  if target-food != nobody  [
-    move-to target-food
-    if [color] of target-food = cyan  [die]
-  ]]
-  end
-
 
 to rtb-juvenile
   if energy = 0 [
   set target-patch min-one-of (patches  with [pcolor = brown]) [distance myself]
   ]
-  if energy < 0   [ face target-patch ]
+  if energy < 0   [ face target-patch
+      fd v * 2
+    ]
 end
-
 
 ;;-------------------------------------------------------------;;
 ;;------------------- CARCASS COMMANDS-------------------------;;
@@ -314,7 +330,7 @@ N-adults
 N-adults
 0
 100
-10
+0
 1
 1
 NIL
@@ -421,7 +437,7 @@ TEXTBOX
 10
 1779
 790
-NOTES\n\nHABITAT\n- area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of green circle, adults don't go beyond this green radius (r=50km) (Spiegel et al 2013)\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n- Dominance: juveniles will not land at a carcass occupied by an adult (Bosè et al 2012)\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area  (40000km^2) = 6000kg carrion in area. Divide up into 500kg packages to give 350 items of carrion in the environment. Halve this because not all carrion will be accessible to give 175 carcasses.\n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n(d) Bosè, M., Duriez, O., & Sarrazin, F. (2012). Intra-specific competition in foraging griffon vultures Gyps fulvus: 1. Dynamics of group feeding. Bird Study, 59(2), 182-192.\n
+NOTES\n\nHABITAT\n- Total area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of protected area, adults don't go beyond dark green radius (r=50km) (Spiegel et al 2013)\n- Larger light green circle is the extent of the park, represents Kruger with area = 20,000km^2\n- Remainder of area is non-protected = 20,000km^2\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area of park (20,000km^2) = 3,000kg carrion in area. Distributed according to a Gamma dist. which allows for the occasional large carcass. \n\nOutside of the park there is the same area. Campbell reckons density is higher, let's say double so 0.3kg of carcass per km^2 = 6,000 kg of carrion. Here it is distributed according to a normal distribution as most carrion will be domestic animals like cows. \n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n\n
 14
 0.0
 1
@@ -503,6 +519,95 @@ max [mass] of carcasses
 1
 11
 
+INPUTBOX
+250
+581
+300
+641
+alpha
+1.2
+1
+0
+Number
+
+INPUTBOX
+310
+581
+378
+641
+beta
+0.0040
+1
+0
+Number
+
+INPUTBOX
+552
+584
+602
+644
+mu
+500
+1
+0
+Number
+
+INPUTBOX
+612
+583
+662
+643
+std
+100
+1
+0
+Number
+
+TEXTBOX
+222
+556
+435
+590
+Parameters of Gamma distribution
+14
+0.0
+1
+
+TEXTBOX
+516
+557
+774
+591
+Parameters of normal distribution
+14
+0.0
+1
+
+SLIDER
+5
+166
+177
+199
+roosts
+roosts
+0
+100
+10
+1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+222
+660
+713
+702
+http://homepage.divms.uiowa.edu/~mbognar/applets/gamma.html
+11
+0.0
+1
+
 @#$#@#$#@
 
 ## Vulture Data
@@ -526,7 +631,6 @@ Kruger is 20,000 km2
 square with side of length 141 km
 
 Circle with the same area has a radius = 80km
-
 
 @#$#@#$#@
 default

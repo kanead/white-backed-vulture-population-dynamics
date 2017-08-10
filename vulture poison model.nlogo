@@ -26,7 +26,9 @@ ask patches [set pcolor green - 1]
    set pcolor yellow
     ask patches in-radius 8 [set pcolor yellow]
     ask patches in-radius 50 with [pcolor != yellow] [set pcolor green - 3]
+ ;   ifelse Kruger? [
     ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]
+  ;  ] [ask patch random-xcor random-ycor [ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]]]
   ]
 
 ask n-of roosts patches [set pcolor brown]
@@ -34,7 +36,7 @@ ask n-of roosts patches [set pcolor brown]
 ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
    set color red
    set size 2
-  set energy 10000
+  set energy 32400
   set x0 xcor
  set y0 ycor]
 ]
@@ -43,7 +45,7 @@ ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
 ask n-of n-subadults patches  [sprout-subadults 1 [
     set color brown
     set size 2
-    set energy 10000
+    set energy 32400
     set x0 xcor
     set y0 ycor]
 ]
@@ -52,7 +54,7 @@ ask n-of n-subadults patches  [sprout-subadults 1 [
 ask n-of n-juveniles patches  [sprout-juveniles 1 [
     set color blue
     set size 2
-    set energy 10000
+    set energy 32400
     set x0 xcor
     set y0 ycor]
 ]
@@ -68,14 +70,11 @@ end
 to go
   if ticks = day-length  [set day day + 1 create-next-day]
 
+  ask carcasses [check]
 
-;  if ticks = 0 [
-;create-carcasses n-carcasses [
-;setxy random-xcor random-ycor
-;set color white
-;set size 2
-;set shape "circle"
-;]]
+; if Kruger is the focus
+ifelse Kruger? [
+
   if ticks = 0 [
   ask patches with [pcolor != green - 1] [
     while [sum [mass] of carcasses  < random-normal 3000 100] [
@@ -103,23 +102,72 @@ set shape "circle"
 ]]]
   ]
 
-    ask carcasses [
-  check
-  if distancexy 99.5 99.5 < 80 and mass > 1000 [set color red]
+if ticks = 1[    ask carcasses [
+  ifelse distancexy 99.5 99.5 < 80 and mass > 1000 [set decay decay + 1] [set decay decay + 2]
+  if distancexy  99.5 99.5 < 50 [set size 2.1]
 ]
-
+]
 
 if ticks = 1[
   ask carcasses [ifelse distancexy 99.5 99.5 > 80 [if random outside-rate = 1 [set color cyan]]
     [if random inside-rate = 1 [set color cyan]]
       ]]
 
+
+
+]
+; if KZN is the focus
+
+[
+
+    if ticks = 0 [
+  ask patches with [pcolor = green - 1] [
+    while [sum [mass] of carcasses  < random-normal 3000 100] [
+sprout-carcasses 1 [
+set mass random-gamma alpha beta ;; 1.2 0.004
+move-to one-of  patches with [pcolor = green - 1]
+;setxy random-pxcor random-pycor
+set color white
+set size 2
+set shape "circle"
+]]]
+  ]
+
+
+    if ticks = 0 [
+  ask patches with [pcolor != green - 1] [
+    while [sum [mass] of carcasses < random-normal 9000 100] [
+sprout-carcasses 1 [
+set mass random-normal mu std ; 500 100
+move-to one-of  patches with [pcolor != green - 1]
+;setxy random-pxcor random-pycor
+set color white
+set size 2
+set shape "circle"
+]]]
+  ]
+
+
 if ticks = 1[
-ask carcasses
-[ifelse color != red [set decay decay + 2] [set decay decay + 1]
-]]
+    ask carcasses [
+  ifelse distancexy 99.5 99.5 > 80 and mass > 1000 [set decay decay + 1] [set decay decay + 2]
+  if distancexy  99.5 99.5 < 50 [set size 2.1]
+]
+]
+
+if ticks = 1[
+  ask carcasses [ifelse distancexy 99.5 99.5 < 80 [if random outside-rate = 1 [set color cyan]]
+    [if random inside-rate = 1 [set color cyan]]
+      ]]
+
+]
 
 
+
+;if ticks = 1[
+;ask carcasses
+;[ifelse color != red [set decay decay + 2] [set decay decay + 1]
+;]]
 
 
 
@@ -134,8 +182,8 @@ ask carcasses
 
  ask subadults
  [forage-vul
-   feed-vul
-   social-vul
+   feed-vul-mod
+   social-vul-mod
    rtb-sub
   set x0 xcor
   set y0 ycor
@@ -144,8 +192,8 @@ ask carcasses
 
  ask juveniles
  [forage-vul
-   feed-vul
-   social-vul
+   feed-vul-mod
+   social-vul-mod
    rtb-juvenile
    set x0 xcor
   set y0 ycor
@@ -166,9 +214,11 @@ to forage-vul
   fd v
    if random 600 = 1 ;; frequency of turn
   [ ifelse random 2 = 0 ;; 50:50 chance of left or right
-    [ rt 30 ] ;; could add some variation to this with random-normal 45 5
-    [ lt 30 ]] ;; so that it samples from a dist with mean 45 SD 5
+    [ rt 15 ] ;; could add some variation to this with random-normal 45 5
+    [ lt 15 ]] ;; so that it samples from a dist with mean 45 SD 5
  end
+
+
   to territory-vul
     while [[pcolor] of patch-here = green ]
      [
@@ -180,7 +230,7 @@ to forage-vul
 
   to feed-vul
     if energy > 0 [
-let target-food min-one-of (carcasses with [shape = "circle"] in-radius vision) [distance myself]
+let target-food min-one-of (carcasses with [shape = "circle" and  size = 2.1]  in-radius vision) [distance myself]
   if target-food != nobody  [
     move-to target-food
     set xcar xcor
@@ -192,7 +242,7 @@ let target-food min-one-of (carcasses with [shape = "circle"] in-radius vision) 
 
     to social-vul
     if energy > 0 [
-let target-food min-one-of (carcasses with [shape = "target"] in-radius 7) [distance myself]
+let target-food min-one-of (carcasses with [shape = "target" and  size = 2.1] in-radius 7) [distance myself]
   if target-food != nobody  [
     move-to target-food
     set xcar xcor
@@ -207,6 +257,34 @@ to rtb-vul
    fd v * 2
   ]
 end
+
+;;-------------------------------------------------------------;;
+;;------------------- != ADULT COMMANDS------------------------;;
+;;-------------------------------------------------------------;;
+
+  to feed-vul-mod
+    if energy > 0 [
+let target-food min-one-of (carcasses with [shape = "circle" ]  in-radius vision) [distance myself]
+  if target-food != nobody  [
+    move-to target-food
+    set xcar xcor
+    set ycar ycor
+    if [color] of target-food = cyan  [die]
+  ]]
+  end
+
+
+    to social-vul-mod
+    if energy > 0 [
+let target-food min-one-of (carcasses with [shape = "target" ] in-radius 7) [distance myself]
+  if target-food != nobody  [
+    move-to target-food
+    set xcar xcor
+    set ycar ycor
+    if [color] of target-food = cyan  [die]
+  ]]
+
+    end
 
 ;;-------------------------------------------------------------;;
 ;;------------------- SUBADULT COMMANDS------------------------;;
@@ -250,12 +328,12 @@ end
 to create-next-day
   clear-links
   reset-ticks
-     ask adults [set energy 10000
-        face patch xcar ycar]
-  ask subadults [set energy 10000
-        face patch xcar ycar]
-  ask juveniles [set energy 10000
-        face patch xcar ycar]
+     ask adults [set energy 32400
+        facexy  xcar ycar]
+  ask subadults [set energy 32400
+        facexy  xcar ycar]
+  ask juveniles [set energy 32400
+        facexy  xcar ycar]
   ask carcasses with [decay = 2] [die]
   go
 end
@@ -330,7 +408,7 @@ N-adults
 N-adults
 0
 100
-0
+26
 1
 1
 NIL
@@ -353,7 +431,7 @@ INPUTBOX
 86
 296
 day-length
-20000
+39600
 1
 0
 Number
@@ -378,7 +456,7 @@ N-juveniles
 N-juveniles
 0
 100
-0
+13
 1
 1
 NIL
@@ -436,8 +514,8 @@ TEXTBOX
 1090
 10
 1779
-790
-NOTES\n\nHABITAT\n- Total area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of protected area, adults don't go beyond dark green radius (r=50km) (Spiegel et al 2013)\n- Larger light green circle is the extent of the park, represents Kruger with area = 20,000km^2\n- Remainder of area is non-protected = 20,000km^2\n- small yellow circle = adult roost\n\nANIMALS\n- N-adults = number of adult birds\n- N-juveniles = number of juvenile birds\n- N-carcasses = number of carcasses\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- day-length = length of one foraging day in seconds (Spiegel et al 2013)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area of park (20,000km^2) = 3,000kg carrion in area. Distributed according to a Gamma dist. which allows for the occasional large carcass. \n\nOutside of the park there is the same area. Campbell reckons density is higher, let's say double so 0.3kg of carcass per km^2 = 6,000 kg of carrion. Here it is distributed according to a normal distribution as most carrion will be domestic animals like cows. \n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n\n
+843
+NOTES\n\nHABITAT\n- Total area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of protected area, adults don't go beyond dark green radius (r=50km) (Spiegel et al 2013)\n- Larger light green circle is the extent of the park, represents Kruger with area = 20,000km^2\n- Remainder of area is non-protected = 20,000km^2\n- small yellow circle = adult roost = 200km^2\n- brown patches are roosts for juveniles and subadults. We can vary their number. \n\nANIMALS\n- N-adults = number of adult birds, density 13 birds per 100km^2\nset as 26 adults in the roost which is 200km^2\n- N-subadults = number of subadult birds, N=13=half adult number\n- N-juveniles = number of juvenile birds, N=13=half adult number\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- local enhancement: a carcass with a bird on it is visible from 7km rather than 6km.\n- Birds move towards the area they found a carcass at the previous day. \n- day-length = length of one foraging day in seconds, 39600 = 11 hours(Campbell)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time in hours between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area of park (20,000km^2) = 3,000kg carrion in area. Distributed according to a Gamma dist. which allows for the occasional large carcass. \n\nAbout a 3% chance of getting a carcass > 1000kg. These carcasses don't decay after a day which makes them more dangerous to vultures if the carcass is poisoned. \n\nOutside of the park there is the same area. Campbell reckons density is higher, let's say double so 0.3kg of carcass per km^2 = 6,000 kg of carrion. Here it is distributed according to a normal distribution as most carrion will be domestic animals like cows. \n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n\n
 14
 0.0
 1
@@ -502,7 +580,7 @@ N-subadults
 N-subadults
 0
 100
-0
+13
 1
 1
 NIL
@@ -608,6 +686,27 @@ http://homepage.divms.uiowa.edu/~mbognar/applets/gamma.html
 0.0
 1
 
+SWITCH
+790
+624
+893
+657
+Kruger?
+Kruger?
+0
+1
+-1000
+
+TEXTBOX
+709
+671
+1050
+773
+This switch changes the focus of the model. When it's down, the circle represents a non-protected area and the edges of the map are protected. The area is the same. The main difference is the carcass densities flip and you need to be aware of what the poisoning rates refer to.
+14
+0.0
+1
+
 @#$#@#$#@
 
 ## Vulture Data
@@ -631,7 +730,6 @@ Kruger is 20,000 km2
 square with side of length 141 km
 
 Circle with the same area has a radius = 80km
-
 @#$#@#$#@
 default
 true

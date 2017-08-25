@@ -1,5 +1,8 @@
 ;;-------------------------------------------------------------;;
 ;;-------------------------------------------------------------;;
+extensions [profiler]
+
+
 ; http://jasss.soc.surrey.ac.uk/20/1/3.html
 breed [adults adult]
 breed [subadults subadult]
@@ -7,12 +10,12 @@ breed [juveniles juvenile]
 
 breed [carcasses carcass]
 
-adults-own [energy x0 y0 xcar ycar]
+adults-own [energy x0 y0 xcar ycar target-patch]
 subadults-own [energy x0 y0 xcar ycar target-patch]
 juveniles-own [energy x0 y0 xcar ycar target-patch]
 carcasses-own [mass decay]
 
-globals [day poison]
+globals [day poison territory-patches non-territory-patches]
 
 ;;-------------------------------------------------------------;;
 ;;----------------------- SETUP COMMANDS---------------------- ;;
@@ -34,7 +37,7 @@ ask patches [set pcolor green - 1]
 ask n-of roosts patches [set pcolor brown]
 
 ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
-   set color red
+ ;  set color red
    set size 2
   set energy 32400
   set x0 xcor
@@ -43,7 +46,7 @@ ask n-of n-adults patches with [pcolor = yellow] [sprout-adults 1 [
 
 
 ask n-of n-subadults patches  [sprout-subadults 1 [
-    set color brown
+  ;  set color brown
     set size 2
     set energy 32400
     set x0 xcor
@@ -52,7 +55,7 @@ ask n-of n-subadults patches  [sprout-subadults 1 [
 
 
 ask n-of n-juveniles patches  [sprout-juveniles 1 [
-    set color blue
+ ;   set color blue
     set size 2
     set energy 32400
     set x0 xcor
@@ -60,6 +63,8 @@ ask n-of n-juveniles patches  [sprout-juveniles 1 [
 ]
 
 
+set territory-patches patches with [pcolor =  green - 3]
+set non-territory-patches patches with [pcolor =  green ]
 
   reset-ticks
 end
@@ -84,7 +89,7 @@ move-to one-of  patches with [pcolor != green - 1]
 ;setxy random-pxcor random-pycor
 set color white
 set size 2
-set shape "circle"
+ifelse mass < 1000 [set shape "circle"] [set shape "target"]
 ]]]
   ]
 
@@ -103,7 +108,7 @@ set shape "circle"
   ]
 
 if ticks = 1[    ask carcasses [
-  ifelse distancexy 99.5 99.5 < 80 and mass > 1000 [set decay decay + 1] [set decay decay + 2]
+  ifelse distancexy 99.5 99.5 < 80 and mass > 1000 [set decay decay + 1 ] [set decay decay + 2]
   if distancexy  99.5 99.5 < 50 [set size 2.1]
 ]
 ]
@@ -129,7 +134,7 @@ move-to one-of  patches with [pcolor = green - 1]
 ;setxy random-pxcor random-pycor
 set color white
 set size 2
-set shape "circle"
+ifelse mass < 1000 [set shape "circle"] [set shape "target"]
 ]]]
   ]
 
@@ -150,7 +155,7 @@ set shape "circle"
 
 if ticks = 1[
     ask carcasses [
-  ifelse distancexy 99.5 99.5 > 80 and mass > 1000 [set decay decay + 1] [set decay decay + 2]
+  ifelse distancexy 99.5 99.5 > 80 and mass > 1000 [set decay decay + 1 ] [set decay decay + 2]
   if distancexy  99.5 99.5 < 50 [set size 2.1]
 ]
 ]
@@ -171,12 +176,23 @@ if ticks = 1[
 
 
 
+
   ask adults
  [forage-vul
+
+ifelse day < 240  [
   feed-vul
   social-vul
   rtb-vul
   territory-vul
+]
+[
+  feed-vul-mod
+   social-vul-mod
+   rtb-juvenile
+   set x0 xcor
+  set y0 ycor
+]
   ]
 
 
@@ -201,7 +217,7 @@ if ticks = 1[
 
 
 ;if not any? adults or not any? juveniles [ print "day" print day print "n-adults" print count adults print "n-juveniles" print count juveniles stop]
-
+if day = 365 [stop]
  tick
 end
 
@@ -222,7 +238,7 @@ to forage-vul
   to territory-vul
     while [[pcolor] of patch-here = green ]
      [
-       face min-one-of patches with [pcolor = green - 3  ] [ distance myself ]
+       face min-one-of territory-patches [ distance myself ]
        forage-vul
      ]
 
@@ -319,7 +335,9 @@ end
 ;;------------------- CARCASS COMMANDS-------------------------;;
 ;;-------------------------------------------------------------;;
 to check
+  ask carcasses with [shape = "circle"] [
 ifelse any? turtles-here with [shape = "default"] [set shape "target"][set shape "circle"]
+  ]
 end
 
 ;;-------------------------------------------------------------;;
@@ -336,6 +354,22 @@ to create-next-day
         facexy  xcar ycar]
   ask carcasses with [decay = 2] [die]
   go
+end
+
+;;-------------------------------------------------------------;;
+;;------------------- PROFILER COMMANDS------------------------;;
+;;-------------------------------------------------------------;;
+to profile
+;setup
+;profiler:reset
+;profiler:start
+;repeat day-length [go]
+;profiler:stop
+;let _fname "C:/Users/akane/Desktop/Science/Manuscripts/White-backed Vulture Pop Dynamics/Code/white-backed-vulture-population-dynamics/report.txt"
+;carefully [file-delete _fname] []
+;file-open _fname
+;file-print profiler:report
+;file-close
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -437,10 +471,10 @@ day-length
 Number
 
 INPUTBOX
-5
-366
-78
-426
+6
+456
+79
+516
 v
 0.00667
 1
@@ -488,28 +522,6 @@ count carcasses with [color = cyan]
 1
 11
 
-MONITOR
-100
-359
-193
-404
-NIL
-count adults
-17
-1
-11
-
-MONITOR
-100
-409
-196
-454
-NIL
-count juveniles
-17
-1
-11
-
 TEXTBOX
 1090
 10
@@ -527,8 +539,8 @@ CHOOSER
 353
 inside-rate
 inside-rate
-2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-13
+2 5 10 15 20 25 30 35 40 50 75 100 200 250 500 1000
+0
 
 CHOOSER
 102
@@ -537,28 +549,8 @@ CHOOSER
 354
 outside-rate
 outside-rate
-2 5 10 15 20 25 30 35 40 50 75 100 200 500 1000
-13
-
-PLOT
-733
-18
-1061
-375
-Time series of bird population
-time
-Count birds
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"adults" 1.0 0 -2674135 true "" "plot count adults"
-"juveniles" 1.0 0 -13345367 true "" "plot count juveniles"
-"subadults" 1.0 0 -6459832 true "" "plot count subadults"
+2 5 10 15 20 25 30 35 40 50 75 100 200 250 500 1000
+15
 
 MONITOR
 90
@@ -704,6 +696,76 @@ TEXTBOX
 773
 This switch changes the focus of the model. When it's down, the circle represents a non-protected area and the edges of the map are protected. The area is the same. The main difference is the carcass densities flip and you need to be aware of what the poisoning rates refer to.
 14
+0.0
+1
+
+BUTTON
+48
+743
+119
+776
+NIL
+Profile
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+743
+396
+800
+441
+adults
+count adults
+17
+1
+11
+
+MONITOR
+744
+499
+840
+544
+NIL
+count juveniles
+17
+1
+11
+
+MONITOR
+743
+447
+844
+492
+NIL
+count subadults
+17
+1
+11
+
+TEXTBOX
+14
+365
+55
+383
+Kruger
+11
+0.0
+1
+
+TEXTBOX
+114
+365
+177
+383
+KZN
+11
 0.0
 1
 
@@ -1061,6 +1123,106 @@ NetLogo 5.2.1
     </enumeratedValueSet>
     <enumeratedValueSet variable="v-vulture">
       <value value="0.0125"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="vulture poison" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 365</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.0040"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="experiment" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 365</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.0040"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

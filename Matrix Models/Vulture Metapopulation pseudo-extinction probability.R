@@ -21,7 +21,7 @@ fs <- 0.6 # fledging success
 f1 <- bp * (cs/2) * hs * fs # divide by 2 to get females only
 
 # survival 
-s0 <- 0.42 # first year survival # this value should probably be modified to account for 
+s0 <- 0.42 # first year survival, could probably be modified to account for 
 # lower adult survival in KZN
 s1Kr <- 0.82 # juvenile survival Kruger
 s2Kr <- 0.89 # subadult survival Kruger
@@ -76,18 +76,18 @@ s2Kr <- 0.89 # Kruger subadult survival
 s3Kr <- 1 # Kruger adult survival
 
 metaA <- matrix(c( 
-  # Kruger                                            # KZN
-  0,  0,  0,  0,  f1*(1-gb0),                          0,  0,  0,  0, f1*bg0,
-  s1Kr*(1-gb), 0, 0, 0, 0,                            s1Kz*bg, 0, 0, 0, 0,
-  0, s1Kr*(1-gb), 0, 0, 0,                            0, s1Kz*bg, 0, 0, 0,
-  0, 0, s2Kr*(1-gb), 0, 0,                            0, 0, s2Kz*bg, 0, 0,
-  0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),                  0, 0, 0, s2Kz*bg, s3Kz*bg,
+  # Kruger                                          # KZN
+  0,  0,  0,  0,  f1*(1-gb0),                       0,  0,  0,  0, f1*bg0,
+  s1Kr*(1-gb), 0, 0, 0, 0,                          s1Kz*bg, 0, 0, 0, 0,
+  0, s1Kr*(1-gb), 0, 0, 0,                          0, s1Kz*bg, 0, 0, 0,
+  0, 0, s2Kr*(1-gb), 0, 0,                          0, 0, s2Kz*bg, 0, 0,
+  0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),                0, 0, 0, s2Kz*bg, s3Kz*bg,
   
-  0, 0, 0, 0, f1*gb0,                                  0, 0, 0, 0, f1*(1-bg0),
-  s1Kr*gb, 0, 0, 0, 0,                                s1Kz*(1-bg), 0, 0, 0, 0,
-  0, s1Kr*gb, 0, 0, 0,                                0, s1Kz*(1-bg), 0, 0, 0,
-  0, 0, s2Kr*gb, 0, 0,                                0, 0, s2Kz*(1-bg), 0, 0,
-  0, 0, 0, s2Kr*gb, s3Kr*gb,                          0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)), 
+  0, 0, 0, 0, f1*gb0,                                0, 0, 0, 0, f1*(1-bg0),
+  s1Kr*gb, 0, 0, 0, 0,                              s1Kz*(1-bg), 0, 0, 0, 0,
+  0, s1Kr*gb, 0, 0, 0,                              0, s1Kz*(1-bg), 0, 0, 0,
+  0, 0, s2Kr*gb, 0, 0,                              0, 0, s2Kz*(1-bg), 0, 0,
+  0, 0, 0, s2Kr*gb, s3Kr*gb,                        0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)), 
   
   nrow = 10, byrow = TRUE)
 
@@ -116,18 +116,18 @@ vulture.vr <- list(f1 = 0.076608, # fecundity * first year survival s0 = 0.1824 
 
                    
 sensA <- expression( 
-                     # Kruger                                            # KZN
-                     0,  0,  0,  0,  f1*(1-gb0),                          0,  0,  0,  0, f1*bg0,
-                     s1Kr*(1-gb), 0, 0, 0, 0,                            s1Kz*bg, 0, 0, 0, 0,
-                     0, s1Kr*(1-gb), 0, 0, 0,                            0, s1Kz*bg, 0, 0, 0,
-                     0, 0, s2Kr*(1-gb), 0, 0,                            0, 0, s2Kz*bg, 0, 0,
-                     0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),                  0, 0, 0, s2Kz*bg, s3Kz*bg,
+                     # Kruger                                      # KZN
+                     0,  0,  0,  0,  f1*(1-gb0),                   0,  0,  0,  0, f1*bg0,
+                     s1Kr*(1-gb), 0, 0, 0, 0,                      s1Kz*bg, 0, 0, 0, 0,
+                     0, s1Kr*(1-gb), 0, 0, 0,                      0, s1Kz*bg, 0, 0, 0,
+                     0, 0, s2Kr*(1-gb), 0, 0,                      0, 0, s2Kz*bg, 0, 0,
+                     0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),            0, 0, 0, s2Kz*bg, s3Kz*bg,
                      
-                     0, 0, 0, 0, f1*gb0,                                  0, 0, 0, 0, f1*(1-bg0),
-                     s1Kr*gb, 0, 0, 0, 0,                                s1Kz*(1-bg), 0, 0, 0, 0,
-                     0, s1Kr*gb, 0, 0, 0,                                0, s1Kz*(1-bg), 0, 0, 0,
-                     0, 0, s2Kr*gb, 0, 0,                                0, 0, s2Kz*(1-bg), 0, 0,
-                     0, 0, 0, s2Kr*gb, s3Kr*gb,                          0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)
+                     0, 0, 0, 0, f1*gb0,                           0, 0, 0, 0, f1*(1-bg0),
+                     s1Kr*gb, 0, 0, 0, 0,                          s1Kz*(1-bg), 0, 0, 0, 0,
+                     0, s1Kr*gb, 0, 0, 0,                          0, s1Kz*(1-bg), 0, 0, 0,
+                     0, 0, s2Kr*gb, 0, 0,                          0, 0, s2Kz*(1-bg), 0, 0,
+                     0, 0, 0, s2Kr*gb, s3Kr*gb,                    0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)
                      )
 
 # then apply the following popbio function
@@ -192,18 +192,18 @@ for (j in 1:sims){
 # to see where these values come from
     
     A <- matrix(c( 
-      # Kruger                                            # KZN
-      0,  0,  0,  0,  f1*(1-gb0),                          0,  0,  0,  0, f1*bg0,
-      s1Kr*(1-gb), 0, 0, 0, 0,                            s1Kz*bg, 0, 0, 0, 0,
-      0, s1Kr*(1-gb), 0, 0, 0,                            0, s1Kz*bg, 0, 0, 0,
-      0, 0, s2Kr*(1-gb), 0, 0,                            0, 0, s2Kz*bg, 0, 0,
-      0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),                  0, 0, 0, s2Kz*bg, s3Kz*bg,
+      # Kruger                                           # KZN
+      0,  0,  0,  0,  f1*(1-gb0),                        0,  0,  0,  0, f1*bg0,
+      s1Kr*(1-gb), 0, 0, 0, 0,                           s1Kz*bg, 0, 0, 0, 0,
+      0, s1Kr*(1-gb), 0, 0, 0,                           0, s1Kz*bg, 0, 0, 0,
+      0, 0, s2Kr*(1-gb), 0, 0,                           0, 0, s2Kz*bg, 0, 0,
+      0, 0, 0, s2Kr*(1-gb), s3Kr*(1-gb),                 0, 0, 0, s2Kz*bg, s3Kz*bg,
       
-      0, 0, 0, 0, f1*gb0,                                  0, 0, 0, 0, f1*(1-bg0),
-      s1Kr*gb, 0, 0, 0, 0,                                s1Kz*(1-bg), 0, 0, 0, 0,
-      0, s1Kr*gb, 0, 0, 0,                                0, s1Kz*(1-bg), 0, 0, 0,
-      0, 0, s2Kr*gb, 0, 0,                                0, 0, s2Kz*(1-bg), 0, 0,
-      0, 0, 0, s2Kr*gb, s3Kr*gb,                          0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)), 
+      0, 0, 0, 0, f1*gb0,                                0, 0, 0, 0, f1*(1-bg0),
+      s1Kr*gb, 0, 0, 0, 0,                               s1Kz*(1-bg), 0, 0, 0, 0,
+      0, s1Kr*gb, 0, 0, 0,                               0, s1Kz*(1-bg), 0, 0, 0,
+      0, 0, s2Kr*gb, 0, 0,                               0, 0, s2Kz*(1-bg), 0, 0,
+      0, 0, 0, s2Kr*gb, s3Kr*gb,                         0, 0, 0, s2Kz*(1-bg), s3Kz*(1-bg)), 
       
       nrow = 10, byrow = TRUE)
     

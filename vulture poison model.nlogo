@@ -1,9 +1,7 @@
 ;;-------------------------------------------------------------;;
 ;;-------------------------------------------------------------;;
-extensions [profiler]
 
-
-; http://jasss.soc.surrey.ac.uk/20/1/3.html
+; http://jasss.soc.surrey.ac.uk/20/1/3.html tips for speeding up model
 breed [adults adult]
 breed [subadults subadult]
 breed [juveniles juvenile]
@@ -29,10 +27,8 @@ ask patches [set pcolor green - 1]
    set pcolor yellow
     ask patches in-radius 8 [set pcolor yellow]
     ask patches in-radius 50 with [pcolor != yellow] [set pcolor green - 3]
- ;   ifelse Kruger? [
-    ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]
-  ;  ] [ask patch random-xcor random-ycor [ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]]]
-  ]
+     ask  patches in-radius 80 with [pcolor != yellow and pcolor != green - 3] [set pcolor green]
+    ]
 
 ask n-of roosts patches [set pcolor brown]
 
@@ -86,7 +82,6 @@ ifelse Kruger? [
 sprout-carcasses 1 [
 set mass random-gamma alpha beta ;; 1.2 0.004
 move-to one-of  patches with [pcolor != green - 1]
-;setxy random-pxcor random-pycor
 set color white
 set size 2
 ifelse mass < 1000 [set shape "circle"] [set shape "target"]
@@ -100,7 +95,6 @@ ifelse mass < 1000 [set shape "circle"] [set shape "target"]
 sprout-carcasses 1 [
 set mass random-normal mu std ; 500 100
 move-to one-of  patches with [pcolor = green - 1]
-;setxy random-pxcor random-pycor
 set color white
 set size 2
 set shape "circle"
@@ -131,7 +125,6 @@ if ticks = 1[
 sprout-carcasses 1 [
 set mass random-gamma alpha beta ;; 1.2 0.004
 move-to one-of  patches with [pcolor = green - 1]
-;setxy random-pxcor random-pycor
 set color white
 set size 2
 ifelse mass < 1000 [set shape "circle"] [set shape "target"]
@@ -145,7 +138,6 @@ ifelse mass < 1000 [set shape "circle"] [set shape "target"]
 sprout-carcasses 1 [
 set mass random-normal mu std ; 500 100
 move-to one-of  patches with [pcolor != green - 1]
-;setxy random-pxcor random-pycor
 set color white
 set size 2
 set shape "circle"
@@ -166,13 +158,6 @@ if ticks = 1[
       ]]
 
 ]
-
-
-
-;if ticks = 1[
-;ask carcasses
-;[ifelse color != red [set decay decay + 2] [set decay decay + 1]
-;]]
 
 
 
@@ -216,7 +201,6 @@ ifelse day < 240  [
   ]
 
 
-;if not any? adults or not any? juveniles [ print "day" print day print "n-adults" print count adults print "n-juveniles" print count juveniles stop]
 if day = 365 [stop]
  tick
 end
@@ -355,28 +339,12 @@ to create-next-day
   ask carcasses with [decay = 2] [die]
   go
 end
-
-;;-------------------------------------------------------------;;
-;;------------------- PROFILER COMMANDS------------------------;;
-;;-------------------------------------------------------------;;
-to profile
-;setup
-;profiler:reset
-;profiler:start
-;repeat day-length [go]
-;profiler:stop
-;let _fname "C:/Users/akane/Desktop/Science/Manuscripts/White-backed Vulture Pop Dynamics/Code/white-backed-vulture-population-dynamics/report.txt"
-;carefully [file-delete _fname] []
-;file-open _fname
-;file-print profiler:report
-;file-close
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 211
 15
-721
-546
+719
+524
 -1
 -1
 2.5
@@ -442,7 +410,7 @@ N-adults
 N-adults
 0
 100
-26
+0.0
 1
 1
 NIL
@@ -465,7 +433,7 @@ INPUTBOX
 86
 296
 day-length
-39600
+39600.0
 1
 0
 Number
@@ -490,7 +458,7 @@ N-juveniles
 N-juveniles
 0
 100
-13
+0.0
 1
 1
 NIL
@@ -505,7 +473,7 @@ vision
 vision
 0
 10
-6
+6.0
 1
 1
 NIL
@@ -527,7 +495,7 @@ TEXTBOX
 10
 1779
 843
-NOTES\n\nHABITAT\n- Total area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of protected area, adults don't go beyond dark green radius (r=50km) (Spiegel et al 2013)\n- Larger light green circle is the extent of the park, represents Kruger with area = 20,000km^2\n- Remainder of area is non-protected = 20,000km^2\n- small yellow circle = adult roost = 200km^2\n- brown patches are roosts for juveniles and subadults. We can vary their number. \n\nANIMALS\n- N-adults = number of adult birds, density 13 birds per 100km^2\nset as 26 adults in the roost which is 200km^2\n- N-subadults = number of subadult birds, N=13=half adult number\n- N-juveniles = number of juvenile birds, N=13=half adult number\n- vision = distance (km) at which a bird can detect a carcass (Kane & Kendall 2017)\n- local enhancement: a carcass with a bird on it is visible from 7km rather than 6km.\n- Birds move towards the area they found a carcass at the previous day. \n- day-length = length of one foraging day in seconds, 39600 = 11 hours(Campbell)\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time in hours between successive roosts (Spiegel et al 2013)\n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n0.15kg of carcass per km^2 (Murn & Anderson 2008) * area of park (20,000km^2) = 3,000kg carrion in area. Distributed according to a Gamma dist. which allows for the occasional large carcass. \n\nAbout a 3% chance of getting a carcass > 1000kg. These carcasses don't decay after a day which makes them more dangerous to vultures if the carcass is poisoned. \n\nOutside of the park there is the same area. Campbell reckons density is higher, let's say double so 0.3kg of carcass per km^2 = 6,000 kg of carrion. Here it is distributed according to a normal distribution as most carrion will be domestic animals like cows. \n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\nREFERENCES\n(a) Kane, A., & Kendall, C. J. (2017). Understanding how mammalian scavengers use information from avian scavengers: cue from above. Journal of Animal Ecology, 86(4), 837-846.\n(b) Spiegel, O., Getz, W. M., & Nathan, R. (2013). Factors influencing foraging search efficiency: why do scarce lappet-faced vultures outperform ubiquitous white-backed vultures?. The American Naturalist, 181(5), E102-E115.\n(c) Murn, C., & Anderson, M. D. (2008). Activity patterns of African White-backed Vultures Gyps africanus in relation to different land-use practices and food availability. Ostrich-Journal of African Ornithology, 79(2), 191-198.\n\n
+NOTES\n\nHABITAT\n- Total area is 200 x 200km = 40,000km^2\n- 2 habitat types, inside + outside of protected area, adults don't go beyond dark green radius (r=50km) (Spiegel et al 2013)\n- Larger light green circle is the extent of the park, represents Kruger with area = 20,000km^2\n- Remainder of area is non-protected = 20,000km^2\n- small yellow circle = adult roost = 200km^2\n- brown patches are roosts for juveniles and subadults. We can vary their number. \n\nANIMALS\n- N-adults = number of adult birds, density 13 birds per 100km^2\nset as 26 adults in the roost which is 200km^2\n- N-subadults = number of subadult birds, N=13=half adult number\n- N-juveniles = number of juvenile birds, N=13=half adult number\n- vision = distance (km) at which a bird can detect a carcass \n- local enhancement: a carcass with a bird on it is visible from 7km rather than 6km.\n- Birds move towards the area they found a carcass at the previous day. \n- day-length = length of one foraging day in seconds, 39600 = 11 hours\n- Distance travelled = 120 km so mean speed = 120/5 = 24km/hr where 5 is the time in hours between successive roosts \n- v = speed in km/s; 0.0067km/s = 24km/hr\n\nCARCASSES\n0.15kg of carcass per km^2 * area of park (20,000km^2) = 3,000kg carrion in area. Distributed according to a Gamma dist. which allows for the occasional large carcass. \n\nAbout a 3% chance of getting a carcass > 1000kg. These carcasses don't decay after a day which makes them more dangerous to vultures if the carcass is poisoned. \n\nOutside of the park there is the same area. Murn (pers. comm.) states this density is higher, perhaps double, so 0.3kg of carcass per km^2 = 6,000 kg of carrion. Here it is distributed according to a normal distribution as most carrion will be domestic animals like cows. \n\nPOISON\n- inside-rate and outside-rate are the rates at which a carcass can be poisoned inside and outside the green circle respectively. 5 means a 1 in 5 chance of a carcass being poisoned.\n\n
 14
 0.0
 1
@@ -539,8 +507,8 @@ CHOOSER
 353
 inside-rate
 inside-rate
-2 5 10 15 20 25 30 35 40 50 75 100 200 250 500 1000
-0
+2 5 10 15 20 25 30 35 40 50 75 100 200 250 500 1000 2000
+15
 
 CHOOSER
 102
@@ -550,7 +518,7 @@ CHOOSER
 outside-rate
 outside-rate
 2 5 10 15 20 25 30 35 40 50 75 100 200 250 500 1000
-15
+11
 
 MONITOR
 90
@@ -572,7 +540,7 @@ N-subadults
 N-subadults
 0
 100
-13
+0.0
 1
 1
 NIL
@@ -606,7 +574,7 @@ INPUTBOX
 378
 641
 beta
-0.0040
+0.004
 1
 0
 Number
@@ -617,7 +585,7 @@ INPUTBOX
 602
 644
 mu
-500
+500.0
 1
 0
 Number
@@ -628,7 +596,7 @@ INPUTBOX
 662
 643
 std
-100
+100.0
 1
 0
 Number
@@ -662,7 +630,7 @@ roosts
 roosts
 0
 100
-10
+20.0
 1
 1
 NIL
@@ -679,41 +647,24 @@ http://homepage.divms.uiowa.edu/~mbognar/applets/gamma.html
 1
 
 SWITCH
-790
-624
-893
-657
+348
+696
+451
+729
 Kruger?
 Kruger?
-0
+1
 1
 -1000
 
 TEXTBOX
-709
-671
-1050
-773
+267
+743
+608
+845
 This switch changes the focus of the model. When it's down, the circle represents a non-protected area and the edges of the map are protected. The area is the same. The main difference is the carcass densities flip and you need to be aware of what the poisoning rates refer to.
 14
 0.0
-1
-
-BUTTON
-48
-743
-119
-776
-NIL
-Profile
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
 
 MONITOR
@@ -769,29 +720,39 @@ KZN
 0.0
 1
 
+MONITOR
+45
+662
+207
+707
+Amount of food outer area
+sum [mass] of carcasses with [(distancexy 99.5 99.5) > 80]
+2
+1
+11
+
+MONITOR
+47
+612
+209
+657
+Amount of food in inner area
+sum [mass] of carcasses with [(distancexy 99.5 99.5) < 80]
+2
+1
+11
+
+TEXTBOX
+47
+722
+231
+843
+Kruger is on - \ninside mass should be ~ 3000\noutside mass should be ~ 6000\n\nKruger is off - \ninside mass should be ~ 6000\noutside mass should be ~ 3000
+12
+0.0
+1
+
 @#$#@#$#@
-
-## Vulture Data
-20–50 WBVs per 100 km2; Mundy et al. 1992
-Assume 50 per 100km^2
-
-Mean Distance Travelled 120 km
-Therefore average speed is 120/5 = 24km/hr (0.00666667 km/second)
-Daily flight duration ~ 5 hours
-
-Home range for Cape Vulture ~ 38,000 km^2, radius of 110 km to get this area in a circle, Kendall & Virani 2012
-
-
-## Carcass Data
-
-4.38kg of carrion per km^2 per day
-0.12-0.15 kg km-2 day-1 from Campbell
-
-##Area Data
-Kruger is 20,000 km2
-square with side of length 141 km
-
-Circle with the same area has a radius = 80km
 @#$#@#$#@
 default
 true
@@ -1083,107 +1044,81 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 5.2.1
+NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <metric>report mean distances</metric>
-    <enumeratedValueSet variable="vision">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="excretion-rate">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-hyenas">
-      <value value="14"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="day-length">
-      <value value="1000"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-carcasses">
-      <value value="22"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-vultures">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="diffusion-rate">
-      <value value="0.4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="nutrient-heat">
-      <value value="4"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="v-hyena">
-      <value value="0.1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="v-vulture">
-      <value value="0.0125"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="vulture poison" repetitions="10" runMetricsEveryStep="false">
+  <experiment name="Lower Kruger rate" repetitions="30" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <exitCondition>day = 365</exitCondition>
     <metric>count adults</metric>
     <metric>count subadults</metric>
     <metric>count juveniles</metric>
-    <enumeratedValueSet variable="day-length">
-      <value value="39600"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-juveniles">
-      <value value="13"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-subadults">
-      <value value="13"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="mu">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="vision">
-      <value value="6"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="std">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="roosts">
-      <value value="10"/>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="v">
       <value value="0.00667"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="outside-rate">
-      <value value="500"/>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="beta">
-      <value value="0.0040"/>
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="250"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="2000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Kruger?">
       <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-adults">
-      <value value="26"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="inside-rate">
-      <value value="1000"/>
+      <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="alpha">
       <value value="1.2"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="experiment" repetitions="10" runMetricsEveryStep="true">
+  <experiment name="Lower Kruger rate" repetitions="30" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <exitCondition>day = 365</exitCondition>
     <metric>count adults</metric>
     <metric>count subadults</metric>
     <metric>count juveniles</metric>
-    <enumeratedValueSet variable="day-length">
-      <value value="39600"/>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="N-juveniles">
       <value value="13"/>
@@ -1191,38 +1126,233 @@ NetLogo 5.2.1
     <enumeratedValueSet variable="N-subadults">
       <value value="13"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="mu">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="vision">
-      <value value="6"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="std">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="roosts">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="v">
-      <value value="0.00667"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="outside-rate">
-      <value value="500"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="beta">
-      <value value="0.0040"/>
-    </enumeratedValueSet>
     <enumeratedValueSet variable="Kruger?">
+      <value value="true"/>
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="N-adults">
       <value value="26"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="inside-rate">
-      <value value="1000"/>
+      <value value="2000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="250"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="inside rate 2000 outside rate 100" repetitions="30" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 365</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="beta">
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="false"/>
+      <value value="true"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="alpha">
       <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="2000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="inside rate 500 outside rate 100" repetitions="30" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 365</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="beta">
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="roost" repetitions="30" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 365</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="beta">
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="26"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="5"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="test" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>day = 1</exitCondition>
+    <metric>count adults</metric>
+    <metric>count subadults</metric>
+    <metric>count juveniles</metric>
+    <enumeratedValueSet variable="std">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="roosts">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="v">
+      <value value="0.00667"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="alpha">
+      <value value="1.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-juveniles">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Kruger?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="beta">
+      <value value="0.004"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="outside-rate">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="vision">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-subadults">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mu">
+      <value value="500"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="day-length">
+      <value value="39600"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="inside-rate">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-adults">
+      <value value="1"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
@@ -1238,7 +1368,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@
